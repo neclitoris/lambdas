@@ -6,7 +6,7 @@ module Language.Lambda.Untyped.Eval
   ) where
 
 import Data.Functor.Foldable
-import Data.List
+import Data.List (union)
 import Data.Text (Text, pack)
 
 import Language.Lambda.Untyped.AST

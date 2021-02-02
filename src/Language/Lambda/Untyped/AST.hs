@@ -23,7 +23,7 @@ import Data.Deriving
 import Data.Fix (Fix(..))
 import Data.Functor.Compose
 import Data.Functor.Foldable
-import Data.List
+import Data.List (union, delete)
 import Data.Text (Text)
 import GHC.Generics
 

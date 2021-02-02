@@ -1,7 +1,6 @@
 module Main where
 
 import Data.Text.IO qualified as Text
-import Prettyprinter.Render.Text
 
 import Language.Lambda.Untyped.Eval
 import Language.Lambda.Untyped.Parser
