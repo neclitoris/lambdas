@@ -1,3 +1,4 @@
+import Data.Bifunctor (first)
 import Data.Text qualified as Text
 import Control.Applicative
 import Hedgehog hiding (defaultMain)
@@ -32,7 +33,7 @@ prop_print_parse :: Property
 prop_print_parse =
   property $ do
     expr <- forAll genAST
-    let (Right expr') = parseExpr (showAST expr)
+    expr' <- evalEither $ parseExpr (showAST expr)
     annotateShow (showAST expr)
     annotateShow (showAST expr')
     expr' === expr
