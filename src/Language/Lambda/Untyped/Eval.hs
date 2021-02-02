@@ -7,14 +7,15 @@ module Language.Lambda.Untyped.Eval
 
 import Data.Functor.Foldable
 import Data.List
+import Data.Text (Text, pack)
 
 import Language.Lambda.Untyped.AST
 
-data Alpha = Alpha String MarkedAST
+data Alpha = Alpha Text MarkedAST
 
-genName :: [String] -> String -> String
+genName :: [Text] -> Text -> Text
 genName used cur =
-  case filter (`notElem` used) $ cur : [cur ++ show i | i <- [0 ..]] of
+  case filter (`notElem` used) $ cur : [cur <> pack (show i) | i <- [0 ..]] of
     name : _ -> name
     []       -> error "Could not generate unique name (should not happen)"
 

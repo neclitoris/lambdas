@@ -9,13 +9,14 @@ import Data.Void
 import Control.Monad.Combinators.Expr
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Data.Text (Text, pack)
 
 import Language.Lambda.Untyped.AST
 
-type Parser = Parsec Void String
+type Parser = Parsec Void Text
 
 var :: Parser AST
-var = Var <$> (space *> some (alphaNumChar <|> char '\''))
+var = Var . pack <$> (space *> some (alphaNumChar <|> char '\''))
 
 app :: Parser (AST -> AST -> AST)
 app = App <$ optional spaceChar
@@ -29,7 +30,7 @@ lam expr = do
   space
   char '.'
   space
-  Lam v <$> expr
+  Lam (pack v) <$> expr
 
 subexpr :: Parser AST
 subexpr = var <|> lam expr <|> char '(' *> expr <* char ')'

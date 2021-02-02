@@ -6,7 +6,7 @@ module Language.Lambda.Untyped.Print
 import Data.Functor.Foldable
 import Prettyprinter
 import Prettyprinter.Render.Text
-import Data.Text qualified as Text
+import Data.Text (Text)
 
 import Language.Lambda.Untyped.AST
 
@@ -25,5 +25,5 @@ instance Pretty AST where
     LamF v (_, x) ->
       mconcat [backslash, pretty v, dot] <+> x
 
-showAST :: AST -> Text.Text
+showAST :: AST -> Text
 showAST = renderStrict . layoutSmart defaultLayoutOptions . pretty

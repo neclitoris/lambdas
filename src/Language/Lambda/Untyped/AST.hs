@@ -24,17 +24,18 @@ import Data.Fix (Fix(..))
 import Data.Functor.Compose
 import Data.Functor.Foldable
 import Data.List
+import Data.Text (Text)
 import GHC.Generics
 
 data ASTF a
-  = VarF String
+  = VarF Text
   | AppF a a
-  | LamF String a
+  | LamF Text a
   deriving (Eq, Show, Generic, Functor)
 
 data MarkedE t = MarkedE
-  { bound :: [String],
-    free :: [String],
+  { bound :: [Text],
+    free :: [Text],
     term :: t
   }
   deriving (Eq, Show, Generic, Functor)
