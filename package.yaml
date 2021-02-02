@@ -27,6 +27,10 @@ dependencies:
 - data-fix
 - prettyprinter
 - text
+- hedgehog
+- tasty
+- tasty-hedgehog
+- tasty-hunit
 
 library:
   source-dirs: src
