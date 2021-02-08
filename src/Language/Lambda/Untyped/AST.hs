@@ -20,12 +20,18 @@ module Language.Lambda.Untyped.AST
   ) where
 
 import Data.Deriving
+  ( deriveEq1
+  , deriveFoldable
+  , deriveOrd1
+  , deriveShow1
+  , deriveTraversable
+  )
 import Data.Fix (Fix(..))
-import Data.Functor.Compose
-import Data.Functor.Foldable
-import Data.List (union, delete)
+import Data.Functor.Compose (Compose(..))
+import Data.Functor.Foldable (cata)
+import Data.List qualified as List
 import Data.Text (Text)
-import GHC.Generics
+import GHC.Generics (Generic)
 
 data ASTF a
   = VarF Text
@@ -82,9 +88,9 @@ mark = cata markStep
 markStep :: ASTF MarkedAST -> MarkedAST
 markStep (VarF x) = Marked [] [x] (VarF x)
 markStep (AppF x@(Marked b1 f1 _) y@(Marked b2 f2 _)) =
-  Marked (union b1 b2) (union f1 f2) (AppF x y)
+  Marked (List.union b1 b2) (List.union f1 f2) (AppF x y)
 markStep (LamF v x@(Marked b f _)) =
-  Marked (union b [v]) (delete v f) (LamF v x)
+  Marked (List.union b [v]) (List.delete v f) (LamF v x)
 
 unmark :: MarkedAST -> AST
 unmark = cata (Fix . term . getCompose)

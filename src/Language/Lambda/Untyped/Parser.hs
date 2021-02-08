@@ -4,10 +4,10 @@ module Language.Lambda.Untyped.Parser
   , MPC.errorBundlePretty
   ) where
 
-import Data.Void
-import Control.Monad.Combinators.Expr
-import Text.Megaparsec qualified as MPC
+import Data.Void (Void)
+import Control.Monad.Combinators.Expr (Operator(..), makeExprParser)
 import Text.Megaparsec (Parsec, (<|>))
+import Text.Megaparsec qualified as MPC
 import Text.Megaparsec.Char qualified as MPC
 import Data.Text (Text, pack)
 

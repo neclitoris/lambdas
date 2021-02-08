@@ -1,29 +1,30 @@
 module Language.Lambda.Untyped.Print
-  ( pretty
+  ( PP.pretty
   , showAST
   ) where
 
-import Data.Functor.Foldable
-import Prettyprinter
-import Prettyprinter.Render.Text
+import Data.Functor.Foldable (para)
+import Prettyprinter ((<+>))
+import Prettyprinter qualified as PP
+import Prettyprinter.Render.Text qualified as PP
 import Data.Text (Text)
 
 import Language.Lambda.Untyped.AST
 
-instance Pretty AST where
+instance PP.Pretty AST where
   pretty = para \case
     VarF v ->
-      pretty v
+      PP.pretty v
     AppF (Lam{}, x) (App{}, y) ->
-      parens x <+> parens y
+      PP.parens x <+> PP.parens y
     AppF (Lam{}, x) (_, y) ->
-      parens x <+> y
+      PP.parens x <+> y
     AppF (_, x) (App{}, y) ->
-      x <+> parens y
+      x <+> PP.parens y
     AppF (_, x) (_, y) ->
       x <+> y
     LamF v (_, x) ->
-      mconcat [backslash, pretty v, dot] <+> x
+      mconcat [PP.backslash, PP.pretty v, PP.dot] <+> x
 
 showAST :: AST -> Text
-showAST = renderStrict . layoutSmart defaultLayoutOptions . pretty
+showAST = PP.renderStrict . PP.layoutSmart PP.defaultLayoutOptions . PP.pretty

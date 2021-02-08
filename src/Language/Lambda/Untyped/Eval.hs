@@ -5,9 +5,10 @@ module Language.Lambda.Untyped.Eval
   , reduce
   ) where
 
-import Data.Functor.Foldable
-import Data.List (union)
-import Data.Text (Text, pack)
+import Data.Functor.Foldable (cata, ana, hylo, project)
+import Data.List qualified as List
+import Data.Text (Text)
+import Data.Text qualified as Text
 
 import Language.Lambda.Untyped.AST
 
@@ -15,7 +16,7 @@ data Alpha = Alpha Text MarkedAST
 
 genName :: [Text] -> Text -> Text
 genName used cur =
-  case filter (`notElem` used) $ cur : [cur <> pack (show i) | i <- [0 ..]] of
+  case filter (`notElem` used) $ cur : [cur <> Text.pack (show i) | i <- [0 ..]] of
     name : _ -> name
     []       -> error "Could not generate unique name (should not happen)"
 
@@ -33,7 +34,7 @@ applyAlpha (Alpha var t') = hylo app collect
       | v `elem` freeVars || v == var =
         MarkedF b f $ LamF v' $ applyAlpha (Alpha v (mark $ Var v')) x -- This is bad. TODO.
       | otherwise = project a
-        where v' = genName (f `union` freeVars `union` [var]) v
+        where v' = genName (f `List.union` freeVars `List.union` [var]) v
     collect a = project a
 
     freeVars = let Marked _ f _ = t' in f
