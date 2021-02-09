@@ -8,6 +8,7 @@ import Test.Tasty.HUnit qualified as Tasty
 import Test.Tasty.Hedgehog qualified as Tasty
 
 import Language.Lambda.Untyped.AST
+import Language.Lambda.Untyped.Eval
 import Language.Lambda.Untyped.Parser
 import Language.Lambda.Untyped.Print
 
@@ -17,7 +18,8 @@ tests = Tasty.testGroup "tests"
 
 props :: Tasty.TestTree
 props = Tasty.testGroup "properties"
-  [ Tasty.testProperty "print-parse" prop_print_parse ]
+  [ Tasty.testProperty "print-parse" prop_print_parse
+  , Tasty.testProperty "normal form" prop_normal_form]
 
 genName :: (MonadGen m) => m Text
 genName = Gen.text (Range.exponential 1 8) Gen.lower
@@ -36,6 +38,16 @@ prop_print_parse =
     annotateShow (showAST expr)
     annotateShow (showAST expr')
     expr' === expr
+
+prop_normal_form :: Property
+prop_normal_form =
+  property $ do
+    expr <- forAll genAST
+    annotateShow (showAST expr)
+    expr' <- eval $ normalize expr
+      -- TODO workaround for random fixpoint
+    annotateShow (showAST expr')
+    reduce expr' === Nothing
 
 main :: IO ()
 main = Tasty.defaultMain tests

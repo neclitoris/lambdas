@@ -10,5 +10,5 @@ import Language.Lambda.Untyped.Print
 main = do
   str <- Text.getLine
   case parseExpr str of
-    Right expr -> Text.putStrLn $ showAST $ reduce expr
+    Right expr -> Text.putStrLn $ showAST $ normalize expr
     Left err -> error err

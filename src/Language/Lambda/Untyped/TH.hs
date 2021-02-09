@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.Lambda.Untyped.TH where
+module Language.Lambda.Untyped.TH
+  ( lambda
+  ) where
 
 import Data.Bifunctor (first)
 import Data.Text (Text, pack, unpack)

@@ -3,9 +3,13 @@ module Language.Lambda.Untyped.Eval
   , applyAlpha
   , reduce'
   , reduce
+  , normalize'
+  , normalize
   ) where
 
-import Data.Functor.Foldable (cata, ana, hylo, project)
+import Control.Monad ((>=>))
+import Data.Functor.Foldable (cata, para, ana, hylo, project)
+import Data.Maybe (fromJust)
 import Data.List qualified as List
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -39,12 +43,20 @@ applyAlpha (Alpha var t') = hylo app collect
 
     freeVars = let Marked _ f _ = t' in f
 
-reduce' :: MarkedAST -> MarkedAST
-reduce' = ana \case
-  (AppM _ _ (LamM _ _ v y) x) ->
-    project $ applyAlpha (Alpha v x) y
-  any ->
-    project any
+reduce' :: MarkedAST -> Maybe MarkedAST
+reduce' = para \case
+  (MarkedF _ _ (AppF (LamM _ _ v y, _) (x, _))) ->
+    Just $ applyAlpha (Alpha v x) y
+  (MarkedF _ _ (VarF v)) ->
+    Nothing
+  (MarkedF _ _ (AppF (_, x) (_, y))) ->
+    fmap markStep (AppF <$> x <*> y)
+  (MarkedF _ _ (LamF v (_, x))) ->
+    fmap markStep (LamF v <$> x)
 
-reduce = unmark . reduce' . mark
+reduce = fmap unmark . reduce' . mark
 
+normalize' :: MarkedAST -> MarkedAST
+normalize' x = maybe x normalize' (reduce' x)
+
+normalize = unmark . normalize' . mark
