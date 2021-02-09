@@ -24,7 +24,7 @@ instance PP.Pretty AST where
     AppF (_, x) (_, y) ->
       x <+> y
     LamF v (_, x) ->
-      mconcat [PP.backslash, PP.pretty v, PP.dot] <+> x
+      PP.parens $ mconcat [PP.backslash, PP.pretty v, PP.dot] <+> x
 
 showAST :: AST -> Text
 showAST = PP.renderStrict . PP.layoutSmart PP.defaultLayoutOptions . PP.pretty

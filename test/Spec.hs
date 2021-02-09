@@ -1,33 +1,32 @@
-import Data.Bifunctor (first)
+import Data.Text (Text)
 import Data.Text qualified as Text
-import Control.Applicative
-import Hedgehog hiding (defaultMain)
+import Hedgehog hiding (defaultMain, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Test.Tasty
-import Test.Tasty.HUnit
-import Test.Tasty.Hedgehog
+import Test.Tasty qualified as Tasty
+import Test.Tasty.HUnit qualified as Tasty
+import Test.Tasty.Hedgehog qualified as Tasty
 
-import Language.Lambda.Untyped.AST qualified as AST
+import Language.Lambda.Untyped.AST
 import Language.Lambda.Untyped.Parser
 import Language.Lambda.Untyped.Print
 
-tests :: TestTree
-tests = testGroup "tests"
+tests :: Tasty.TestTree
+tests = Tasty.testGroup "tests"
   [ props ]
 
-props :: TestTree
-props = testGroup "properties"
-  [ testProperty "print-parse" prop_print_parse ]
+props :: Tasty.TestTree
+props = Tasty.testGroup "properties"
+  [ Tasty.testProperty "print-parse" prop_print_parse ]
 
-genName :: (MonadGen m) => m Text.Text
+genName :: (MonadGen m) => m Text
 genName = Gen.text (Range.exponential 1 8) Gen.lower
 
-genAST :: (MonadGen m) => m AST.AST
+genAST :: (MonadGen m) => m AST
 genAST = Gen.recursive Gen.choice
-  [ AST.Var <$> genName ]
-  [ Gen.subtermM genAST (\x -> AST.Lam <$> genName <*> pure x)
-  , Gen.subterm2 genAST genAST AST.App ]
+  [ Var <$> genName ]
+  [ Gen.subtermM genAST (\x -> Lam <$> genName <*> pure x)
+  , Gen.subterm2 genAST genAST App ]
 
 prop_print_parse :: Property
 prop_print_parse =
@@ -39,4 +38,4 @@ prop_print_parse =
     expr' === expr
 
 main :: IO ()
-main = defaultMain tests
+main = Tasty.defaultMain tests
