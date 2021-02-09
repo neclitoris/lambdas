@@ -1,32 +1,42 @@
-module Language.Lambda.Untyped.Parser where
+module Language.Lambda.Untyped.Parser
+  ( parseExpr
+  , expr
+  , MPC.errorBundlePretty
+  ) where
 
-import Data.Functor
+import Data.Void (Void)
+import Control.Monad.Combinators.Expr (Operator(..), makeExprParser)
+import Text.Megaparsec (Parsec, (<|>))
+import Text.Megaparsec qualified as MPC
+import Text.Megaparsec.Char qualified as MPC
+import Data.Text (Text, pack)
+
 import Language.Lambda.Untyped.AST
-import Text.Parsec
 
-type Parser = Parsec String ()
+type Parser = Parsec Void Text
 
 var :: Parser AST
-var = Var <$> (spaces *> many1 (alphaNum <|> char '\''))
+var =
+  Var . pack <$> (MPC.space *> MPC.some (MPC.alphaNumChar <|> MPC.char '\''))
 
 app :: Parser (AST -> AST -> AST)
-app = optional space $> App
+app = App <$ MPC.optional MPC.spaceChar
 
 lam :: Parser AST -> Parser AST
 lam expr = do
-  spaces
-  char '\\'
-  spaces
-  v <- many1 alphaNum
-  spaces
-  char '.'
-  spaces
-  Lam v <$> expr
+  MPC.space
+  MPC.char '\\'
+  MPC.space
+  v <- MPC.some MPC.alphaNumChar
+  MPC.space
+  MPC.char '.'
+  MPC.space
+  Lam (pack v) <$> expr
 
 subexpr :: Parser AST
-subexpr = var <|> lam expr <|> char '(' *> expr <* char ')'
+subexpr = var <|> lam expr <|> MPC.char '(' *> expr <* MPC.char ')'
 
 expr :: Parser AST
-expr = chainl1 subexpr app
+expr = makeExprParser subexpr [[InfixL app]]
 
-parse = Text.Parsec.parse (expr <* eof) ""
+parseExpr = MPC.parse (expr <* MPC.eof) ""

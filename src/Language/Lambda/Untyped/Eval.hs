@@ -1,13 +1,24 @@
-module Language.Lambda.Untyped.Eval where
+module Language.Lambda.Untyped.Eval
+  ( Alpha
+  , applyAlpha
+  , reduce'
+  , reduce
+  ) where
 
-import Data.Functor.Foldable
-import Data.List
+import Data.Functor.Foldable (cata, ana, hylo, project)
+import Data.List qualified as List
+import Data.Text (Text)
+import Data.Text qualified as Text
+
 import Language.Lambda.Untyped.AST
 
-data Alpha = Alpha String MarkedAST
+data Alpha = Alpha Text MarkedAST
 
-genName :: [String] -> String -> String
-genName used cur = head $ filter (`notElem` used) $ cur : [cur ++ show i | i <- [0 ..]]
+genName :: [Text] -> Text -> Text
+genName used cur =
+  case filter (`notElem` used) $ cur : [cur <> Text.pack (show i) | i <- [0 ..]] of
+    name : _ -> name
+    []       -> error "Could not generate unique name (should not happen)"
 
 applyAlpha :: Alpha -> MarkedAST -> MarkedAST
 applyAlpha (Alpha var t') = hylo app collect
@@ -23,16 +34,17 @@ applyAlpha (Alpha var t') = hylo app collect
       | v `elem` freeVars || v == var =
         MarkedF b f $ LamF v' $ applyAlpha (Alpha v (mark $ Var v')) x -- This is bad. TODO.
       | otherwise = project a
-        where v' = genName (f `union` freeVars `union` [var]) v
+        where v' = genName (f `List.union` freeVars `List.union` [var]) v
     collect a = project a
 
     freeVars = let Marked _ f _ = t' in f
 
 reduce' :: MarkedAST -> MarkedAST
-reduce' = ana red
-  where
-    red (AppM _ _ (LamM _ _ v y) x) = project $ applyAlpha (Alpha v x) y
-    red any = project any
+reduce' = ana \case
+  (AppM _ _ (LamM _ _ v y) x) ->
+    project $ applyAlpha (Alpha v x) y
+  any ->
+    project any
 
 reduce = unmark . reduce' . mark
 

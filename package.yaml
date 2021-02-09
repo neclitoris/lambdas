@@ -21,8 +21,12 @@ dependencies:
 - base >= 4.7 && < 5
 - recursion-schemes
 - deriving-compat
-- parsec
+- megaparsec
+- parser-combinators
 - template-haskell
+- data-fix
+- prettyprinter
+- text
 
 library:
   source-dirs: src
@@ -48,3 +52,41 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - perfect-lang
+
+default-extensions:
+- ApplicativeDo
+- BlockArguments
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveGeneric
+- DeriveGeneric
+- DeriveTraversable
+- DerivingStrategies
+- DuplicateRecordFields
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GeneralizedNewtypeDeriving
+- ImportQualifiedPost
+- InstanceSigs
+- LambdaCase
+- LiberalTypeSynonyms
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NumericUnderscores
+- OverloadedStrings
+- PatternSynonyms
+- QuasiQuotes
+- RankNTypes
+- RecordWildCards
+- ScopedTypeVariables
+- StandaloneDeriving
+- StandaloneKindSignatures
+- StrictData
+- TupleSections
+- TypeApplications
+- TypeFamilies
+- TypeOperators
+- ViewPatterns
