@@ -15,10 +15,6 @@ instance PP.Pretty AST where
   pretty = para \case
     VarF v ->
       PP.pretty v
-    AppF (Lam{}, x) (App{}, y) ->
-      PP.parens x <+> PP.parens y
-    AppF (Lam{}, x) (_, y) ->
-      PP.parens x <+> y
     AppF (_, x) (App{}, y) ->
       x <+> PP.parens y
     AppF (_, x) (_, y) ->
