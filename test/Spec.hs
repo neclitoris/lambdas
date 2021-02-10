@@ -1,5 +1,4 @@
 import Data.Text (Text)
-import Data.Text qualified as Text
 import Hedgehog hiding (defaultMain, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range

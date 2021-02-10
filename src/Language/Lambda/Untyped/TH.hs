@@ -3,7 +3,6 @@ module Language.Lambda.Untyped.TH
   ( lambda
   ) where
 
-import Data.Bifunctor (first)
 import Data.Text (Text, pack, unpack)
 import Control.Monad.Combinators (choice)
 import Control.Monad.Combinators.Expr (makeExprParser, Operator(..))
