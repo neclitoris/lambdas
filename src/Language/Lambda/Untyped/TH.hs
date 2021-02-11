@@ -16,26 +16,34 @@ import Text.Megaparsec.Char qualified as MPC
 import Language.Lambda.Untyped.AST
 import Language.Lambda.Untyped.Parser.Internal
 
-instance ASTLike TH.PatQ where
-  varC v   = [p| Var $(TH.varP $ TH.mkName $ unpack v) |]
-  appC x y = [p| App $(x) $(y) |]
-  lamC v x = [p| Lam $(TH.varP $ TH.mkName $ unpack v) $(x) |]
+newtype ASTPat = ASTPat { unASTPat :: TH.PatQ }
+newtype ASTExp = ASTExp { unASTExp :: TH.ExpQ}
 
-instance ASTLike TH.ExpQ where
-  varC v   = [| Var v |]
-  appC x y = [| App $(x) $(y) |]
-  lamC v x = [| Lam v $(x) |]
+instance ASTLike ASTPat where
+  varC v   = ASTPat [p| Var $(TH.varP $ TH.mkName $ unpack v) |]
+  appC x y = ASTPat [p| App $(unASTPat x) $(unASTPat y) |]
+  lamC v x = ASTPat [p| Lam $(TH.varP $ TH.mkName $ unpack v) $(unASTPat x) |]
+
+instance ASTLike ASTExp where
+  varC v   = ASTExp [| Var v |]
+  appC x y = ASTExp [| App $(unASTExp x) $(unASTExp y) |]
+  lamC v x = ASTExp [| Lam v $(unASTExp x) |]
 
 
 class ASTLike a => ASTEmbed a where
   subC :: String -> a
 
-instance ASTEmbed TH.PatQ where
-  subC = TH.varP . TH.mkName
+instance ASTEmbed ASTPat where
+  subC "_"  = ASTPat TH.wildP
+  subC name = ASTPat $ TH.varP $ TH.mkName name
 
-instance ASTEmbed TH.ExpQ where
-  subC = TH.dyn
+instance ASTEmbed ASTExp where
+  subC "_"  = ASTExp $ fail "wildcards can't be used in expression context"
+  subC name = ASTExp $ TH.dyn name
 
+
+wildcard :: ASTEmbed a => Parser a
+wildcard = subC . (:[]) <$> MPC.char '_'
 
 embedded :: ASTEmbed a => Parser a
 embedded = do
@@ -47,7 +55,12 @@ embedded = do
 subexprTH :: ASTEmbed a => Parser a
 subexprTH = MPC.try $ do
   MPC.space
-  choice [embedded, var, lam exprTH, MPC.char '(' *> exprTH <* MPC.char ')']
+  choice [ wildcard
+         , embedded
+         , var
+         , lam exprTH
+         , MPC.char '(' *> exprTH <* MPC.char ')'
+         ]
 
 exprTH :: ASTEmbed a => Parser a
 exprTH = makeExprParser subexprTH [[InfixL app]]
@@ -60,8 +73,8 @@ parseExprTH str =
 
 lambda :: TH.QuasiQuoter
 lambda = TH.QuasiQuoter
-  { TH.quoteExp  = parseExprTH . pack
-  , TH.quotePat  = parseExprTH . pack
+  { TH.quoteExp  = unASTExp . parseExprTH . pack
+  , TH.quotePat  = unASTPat . parseExprTH . pack
   , TH.quoteType = notImplemented "type"
   , TH.quoteDec  = notImplemented "declaration"
   } where
