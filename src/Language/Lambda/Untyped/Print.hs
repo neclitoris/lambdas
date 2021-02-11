@@ -4,10 +4,12 @@ module Language.Lambda.Untyped.Print
   ) where
 
 import Data.Functor.Foldable (para)
+import Data.Text (Text)
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
+import Prettyprinter.Render.String qualified as PP
 import Prettyprinter.Render.Text qualified as PP
-import Data.Text (Text)
+import Text.Show (Show(..))
 
 import Language.Lambda.Untyped.AST
 
@@ -21,6 +23,9 @@ instance PP.Pretty AST where
       x <+> y
     LamF v (_, x) ->
       PP.parens $ mconcat [PP.backslash, PP.pretty v, PP.dot] <+> x
+
+instance {-# OVERLAPS #-} Show AST where
+  showsPrec _ = PP.renderShowS . PP.layoutPretty PP.defaultLayoutOptions . PP.pretty
 
 showAST :: AST -> Text
 showAST = PP.renderStrict . PP.layoutSmart PP.defaultLayoutOptions . PP.pretty
