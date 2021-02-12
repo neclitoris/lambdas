@@ -7,6 +7,7 @@ module Language.Lambda.Untyped.Eval
   , normalize
   ) where
 
+import Control.Applicative ((<|>))
 import Control.Monad ((>=>))
 import Data.Functor.Foldable (cata, para, ana, hylo, project)
 import Data.Maybe (fromJust)
@@ -49,8 +50,12 @@ reduce' = para \case
     Just $ applyAlpha (Alpha v x) y
   (MarkedF _ _ (VarF v)) ->
     Nothing
-  (MarkedF _ _ (AppF (_, x) (_, y))) ->
-    fmap markStep (AppF <$> x <*> y)
+  (MarkedF _ _ (AppF (_, Just x) (y, _))) ->
+    Just $ markStep $ AppF x y
+  (MarkedF _ _ (AppF (x, _) (_, Just y))) ->
+    Just $ markStep $ AppF x y
+  (MarkedF _ _ (AppF (_, Nothing) (_, Nothing))) ->
+    Nothing
   (MarkedF _ _ (LamF v (_, x))) ->
     fmap markStep (LamF v <$> x)
 

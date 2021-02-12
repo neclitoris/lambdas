@@ -22,12 +22,11 @@ matchPat p =
       $(p) ->
         pure ()
       any ->
-        Tasty.assertBool
+        fail
           (render $ PP.vsep
             [ "expected pattern"
             , PP.indent 2 $ PP.parens $ PP.pretty
               ($(p >>= TH.lift . TH.pprint) :: String)
             , "to match, got"
             , PP.indent 2 $ PP.parens $ PP.pretty any
-            ])
-          False |]
+            ]) |]

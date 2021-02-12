@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+import Control.Monad ((<=<))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Language.Haskell.TH qualified as TH
@@ -28,6 +29,7 @@ props :: Tasty.TestTree
 props = Tasty.testGroup "properties"
   [ Tasty.testProperty "print-parse" prop_print_parse
   , Tasty.testProperty "normal form" prop_normal_form
+  , Tasty.testProperty "fixpoint" prop_fixpoint
   ]
 
 genName :: (MonadGen m) => m Text
@@ -58,6 +60,19 @@ prop_normal_form =
     annotateShow (showAST expr')
     reduce expr' === Nothing
 
+prop_fixpoint :: Property
+prop_fixpoint =
+  property $ do
+    depth <- forAll $ Gen.int $ Range.linear 1 1000
+    test expr depth
+  where
+    fix = [lambda| \f. (\x. f (x x)) (\x. f (x x)) |]
+    expr = (reduce <=< reduce) [lambda| {fix} f |]
+
+    test _ 0 = success
+    test (Just [lambda| f {e} |]) n = test (reduce e) (n - 1)
+    test _ _ = failure
+
 reduction :: Tasty.TestTree
 reduction = Tasty.testGroup "reduction correctness"
   [ Tasty.testCase "single reduction" $
@@ -71,10 +86,6 @@ reduction = Tasty.testGroup "reduction correctness"
   , Tasty.testCase "normal order" $
       $(matchPat [p| Just [lambda| z |] |]) $
         reduce [lambda| (\f. z) ((\x. x x) (\x. x x)) |]
-
-  , Tasty.testCase "fixpoint step" $
-      let expr = [lambda| ((\x. f (x x)) (\x. f (x x))) |]
-       in reduce expr @?= Just [lambda| f {expr} |]
   ]
 
 main :: IO ()
