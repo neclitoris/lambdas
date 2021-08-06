@@ -2,9 +2,10 @@
 
 module Language.Lambda.Untyped.AST
   ( ASTF(..)
-  , MarkedF
   , AST
+  , ASTLike(..)
   , Marked
+  , MarkedF
   , MarkedAST
   , pattern Var
   , pattern App
@@ -95,3 +96,12 @@ markStep (LamF v x@(Marked b f _)) =
 unmark :: MarkedAST -> AST
 unmark = cata (Fix . term . getCompose)
 
+class ASTLike a where
+  varC :: Text -> a
+  appC :: a -> a -> a
+  lamC :: Text -> a -> a
+
+instance ASTLike AST where
+  varC = Var
+  appC = App
+  lamC = Lam
